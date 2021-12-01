@@ -1,0 +1,11 @@
+steps:
+  - id: "docker-compose up"
+    name: "docker/compose:1.29.2"
+    entrypoint: "sh"
+    args:
+      [ "-c",
+        "docker-compose up -d
+         &&
+         ADD_COMMAND
+        "
+      ]
