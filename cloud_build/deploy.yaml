@@ -1,0 +1,16 @@
+steps:
+  - id: "build image"
+    name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}", "--file", "Dockerfile", "."]
+
+  - id: "push image"
+    name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}"]
+
+
+substitutions:
+  _SERVICE_NAME:
+  _SECRET_NAME:
+
+images:
+  - "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}"
