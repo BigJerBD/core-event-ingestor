@@ -9,7 +9,7 @@ steps:
 
 
 substitutions:
-  _SERVICE_NAME:
+  _SERVICE_NAME: "event-ingestor"
   _SECRET_NAME:
 
 images:
