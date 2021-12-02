@@ -1,6 +1,17 @@
 version: '3.8'
 
 services:
-  main:
-    container_name: core-event-ingestor-service-main
-    image: hello-world:linux
+  service:
+    container_name: event-ingestor
+    command: run
+    build:
+      context: .
+      dockerfile: ./Dockerfile.dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      - arango
+    volumes:
+      - ./target:/code/target
+      - ./src:/code/src
+      - ./Cargo.toml:/code/Cargo.toml

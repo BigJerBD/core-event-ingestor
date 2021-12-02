@@ -1,15 +1,3 @@
 core-event-ingestor
 ===============
-Service responsible to receive events
-
-
-## Getting Started
-
-### Prerequisites
-
-### Installing
-
-## Usage 
-
-## References
-
+Service responsible to receive events and forward to appropriate locations.

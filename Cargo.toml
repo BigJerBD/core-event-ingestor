@@ -1,0 +1,24 @@
+[package]
+name = "event-ingestor"
+version = "0.1.0"
+authors = ["Flashcard"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Web
+actix-web = "3"
+actix-rt = "2.5.0"
+actix-service = "2.0.1" # todo remove?
+
+# Pubsub
+
+# Serde
+serde = "1.0.130"
+serde_json = "1.0.72"
+
+# Logging
+log = "0.4"
+env_logger = "0.7.1"
+paperclip = { version = "0.4", features = ["actix"] }
