@@ -6,6 +6,6 @@ steps:
       [ "-c",
         "docker-compose up -d
          &&
-         ADD_COMMAND
+         docker-compose exec service cargo test
         "
       ]

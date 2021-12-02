@@ -18,6 +18,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .configure(config)
     })
+    .bind(service_host.to_owned())?
     .run()
     .await
 }
