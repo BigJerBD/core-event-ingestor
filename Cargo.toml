@@ -1,0 +1,45 @@
+[package]
+name = "event-ingestor"
+version = "0.1.0"
+authors = ["BigJerBD"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Web
+actix-web = { version = "4.0.0-beta.10" }
+actix-rt = "2.5.0"
+actix-service = "2.0.1"
+
+# threading
+tokio = "1.14.0"
+futures = "0.3.18"
+
+# Pubsub
+cloud-pubsub = "0.9.0"
+
+
+# Request
+reqwest = "0.11.7"
+
+# Config
+envy = "0.4.2"
+
+# Serde
+serde = { version = "1.0.130", features = ["derive"] }
+serde_json = "1.0.72"
+
+# Error Handling
+anyhow = "1.0.51"
+
+# Logging
+log = "0.4"
+env_logger = "0.7.1"
+paperclip = { version = "0.4", features = ["actix"] }
+
+# Encoding/Encryption
+base64 = "0.13.0"
+data-encoding = "2.3.2"
+ring = "0.17.0-alpha.10"
+

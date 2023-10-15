@@ -7,10 +7,21 @@ steps:
     name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}"]
 
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE-NAME}'
+      - '--image'
+      - 'gcr.io/${PROJECT_ID}/${_SERVICE-NAME}-service:${COMMIT_SHA}'
+      - '--region'
+      - 'us-central1'
 
 substitutions:
-  _SERVICE_NAME:
-  _SECRET_NAME:
+  _SERVICE_NAME: "event-ingestor"
 
 images:
   - "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}"
+
+timeout: 1800s

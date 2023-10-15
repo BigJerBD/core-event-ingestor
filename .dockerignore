@@ -1,0 +1,14 @@
+target
+var
+cloud_build
+
+.dockerignore
+.gitignore
+.pre-commit-config.yaml
+.env
+
+Dockerfile
+Dockerfile.dev
+docker-compose.yml
+README.md
+rustfmt.toml

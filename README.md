@@ -1,15 +1,6 @@
 core-event-ingestor
 ===============
-Service responsible to receive events
+Personal tool to ingest SAAS webhook events (e.g. todoist) 
+into google pubsub 
 
-
-## Getting Started
-
-### Prerequisites
-
-### Installing
-
-## Usage 
-
-## References
 
