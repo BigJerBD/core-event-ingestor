@@ -14,7 +14,7 @@ steps:
       - 'deploy'
       - '${_SERVICE-NAME}'
       - '--image'
-      - 'gcr.io/${PROJECT_ID}/${_SERVICE-NAME}-service:${COMMIT_SHA}'
+      - 'gcr.io/${PROJECT_ID}/${_SERVICE_NAME}'
       - '--region'
       - 'us-central1'
 
