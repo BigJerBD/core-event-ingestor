@@ -8,9 +8,10 @@ edition = "2018"
 
 [dependencies]
 # Web
-actix-web = { version = "4.0.0-beta.10" }
-actix-rt = "2.5.0"
-actix-service = "2.0.1"
+actix-web = '4.4.0'
+actix-rt = "2.9.0"
+actix-service = "2.0.2"
+actix-http = "3.4.0"
 
 # threading
 tokio = "1.14.0"
@@ -36,7 +37,7 @@ anyhow = "1.0.51"
 # Logging
 log = "0.4"
 env_logger = "0.7.1"
-paperclip = { version = "0.4", features = ["actix"] }
+paperclip = '0.8.2'
 
 # Encoding/Encryption
 base64 = "0.13.0"
