@@ -119,11 +119,10 @@ pub async fn webhook(
 
 
     log::info!(
-        "message published: event_name={}, project_name={}, parent_name={}, grandparent_name={},  section_name={}",
+        "message published: event_name={}, project_name={}, parent_name={}, section_name={}",
         &event.event_name,
         &cur_project_name,
         &cur_parent_name,
-        &cur_grandparent_name,
         &cur_section_name
     );
 
