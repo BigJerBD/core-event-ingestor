@@ -33,6 +33,7 @@ pub struct TodoistEvent {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TodoistEventData {
+    id: String,
     parent_id: Option<String>,
     project_id: Option<String>,
     section_id: Option<String>,
@@ -98,30 +99,24 @@ pub async fn webhook(
         },
     };
 
-    let cur_grandparent_name = match &cur_project {
-        None => "".to_string(),
-        Some(cur_project) => match &projects.iter().find(|p| {
-            Some(p.id.clone()) == cur_project.parent_id
-        }) {
+    let cur_section_name = if event.event_name.starts_with("section:") {
+        match get_section(event.event_data.id.clone(), &config).await {
+            Ok(section) => section.name.clone(),
+            _ => "".to_string(),
+        }
+    } else {
+         match &event.event_data.section_id {
             None => "".to_string(),
-            Some(parent) => match &projects.iter().find(|p| {
-                Some(p.id.clone()) == parent.parent_id
-            }) {
-                None => "".to_string(),
-                Some(grandparent) => grandparent.name.clone(),
-            },
-        },
-    };
-
-    let cur_section_name = match &event.event_data.section_id {
-        None => "".to_string(),
-        Some(section_id) => {
-            match get_section(section_id.clone(), &config).await {
-                Ok(section) => section.name.clone(),
-                _ => "".to_string(),
+            Some(section_id) => {
+                match get_section(section_id.clone(), &config).await {
+                    Ok(section) => section.name.clone(),
+                    _ => "".to_string(),
+                }
             }
         }
     };
+
+
 
     log::info!(
         "message published: event_name={}, project_name={}, parent_name={}, grandparent_name={},  section_name={}",
@@ -140,10 +135,6 @@ pub async fn webhook(
                 ("event_name".to_string(), event.event_name.clone()),
                 ("project_name".to_string(), cur_project_name),
                 ("parent_name".to_string(), cur_parent_name),
-                (
-                    "grandparent_name".to_string(),
-                    cur_grandparent_name,
-                ),
                 ("section_name".to_string(), cur_section_name),
             ])),
         ))
