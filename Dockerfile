@@ -4,7 +4,7 @@ WORKDIR /code/
 COPY Cargo.lock .
 COPY Cargo.toml .
 COPY src ./src
-
+COPY cloud-pubsub cloud-pubsub
 
 RUN cargo install --path .
 
