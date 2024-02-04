@@ -18,7 +18,7 @@ tokio = "1.14.0"
 futures = "0.3.18"
 
 # Pubsub
-cloud-pubsub = "0.9.0"
+cloud-pubsub = { path = "cloud-pubsub" }
 
 
 # Request

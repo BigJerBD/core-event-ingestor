@@ -116,8 +116,6 @@ pub async fn webhook(
         }
     };
 
-
-
     log::info!(
         "message published: event_name={}, project_name={}, parent_name={}, section_name={}",
         &event.event_name,
@@ -136,6 +134,7 @@ pub async fn webhook(
                 ("parent_name".to_string(), cur_parent_name),
                 ("section_name".to_string(), cur_section_name),
             ])),
+            Some(event.event_data.id.clone())
         ))
         .await
         .unwrap();
