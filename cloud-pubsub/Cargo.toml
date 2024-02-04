@@ -1,0 +1,30 @@
+[package]
+name         =  "cloud-pubsub"
+version      =  "0.9.0"
+authors      =  ["Kayle Gishen <k@bkdsw.com>", "tehAnswer <sergiorodriguezgijon@gmail.com>"]
+edition      =  "2018"
+description  =  "Google Cloud PubSub Client"
+homepage     =  "https://github.com/kayleg/cloud-pubsub"
+repository   =  "https://github.com/kayleg/cloud-pubsub"
+keywords     =  ["google", "pubsub"]
+license      =  "MIT"
+readme       =  "README.md"
+
+[dependencies]
+bytes         =  "1"
+hyper         =  "0.14"
+hyper-tls     =  "0.5"
+tokio         =  "1"
+goauth        =  "0.13"
+smpl_jwt      =  "0.7"
+serde         =  "1.0"
+serde_derive  =  "1.0"
+serde_json    =  "1.0"
+base64        =  "0.21"
+lazy_static   =  "1.4.0"
+rand          =  "0.8"
+log           =  "0.4"
+
+[dev-dependencies]
+envy          =  "0.4"
+tokio         =  { version = "1", features = ["rt-multi-thread", "macros", "signal"]}
