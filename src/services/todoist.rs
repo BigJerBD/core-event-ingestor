@@ -89,7 +89,21 @@ pub async fn webhook(
         Some(project) => project.name.clone(),
     };
 
-    let cur_parent_name = match &cur_project {
+    let cur_parent = match &cur_project {
+        None => None,
+        Some(cur_project) => match &projects.iter().find(|project| {
+            Some(project.id.clone()) == cur_project.parent_id
+        }) {
+            None => None,
+            Some(project) => Some(project.clone()),
+        },
+    };
+    let cur_parent_name = match &cur_parent {
+        None => "".to_string(),
+        Some(project) => project.name.clone()
+    };
+
+    let cur_parent_parent_name = match &cur_parent {
         None => "".to_string(),
         Some(cur_project) => match &projects.iter().find(|project| {
             Some(project.id.clone()) == cur_project.parent_id
@@ -117,10 +131,11 @@ pub async fn webhook(
     };
 
     log::info!(
-        "message published: event_name={}, project_name={}, parent_name={}, section_name={}",
+        "message published: event_name={}, project_name={}, parent_name={}, parent_parent_name={}, section_name={}",
         &event.event_name,
         &cur_project_name,
         &cur_parent_name,
+        &cur_parent_parent_name,
         &cur_section_name
     );
 
@@ -132,6 +147,7 @@ pub async fn webhook(
                 ("event_name".to_string(), event.event_name.clone()),
                 ("project_name".to_string(), cur_project_name),
                 ("parent_name".to_string(), cur_parent_name),
+                ("parent_parent_name".to_string(), cur_parent_parent_name),
                 ("section_name".to_string(), cur_section_name),
             ])),
             Some(event.event_data.id.clone())
