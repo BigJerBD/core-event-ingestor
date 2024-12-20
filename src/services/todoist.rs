@@ -46,8 +46,6 @@ pub struct ProjectEvent {
     id: String,
     name: String,
     parent_id: Option<String>,
-    v2_id: String,
-    v2_parent_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -89,6 +87,7 @@ pub async fn webhook(
     let projects = get_projects(&config).await.unwrap();
 
     debug!("event: {:?}", event);
+    debug!("projects: {:?}", projects);
 
     let attr = if event.event_name.starts_with("project:") {
         extract_project_attributes(&event, projects).await
