@@ -140,7 +140,7 @@ async fn extract_project_attributes(
 
     let parent = match &projects
         .iter()
-        .find(|p| Some(p.id.clone()) == project.v2_parent_id)
+        .find(|p| Some(p.id.clone()) == project.parent_id)
     {
         None => None,
         Some(p) => Some(p.clone()),
