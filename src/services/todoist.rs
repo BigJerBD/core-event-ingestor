@@ -12,6 +12,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use anyhow::{anyhow, Result};
 use log::debug;
+use serde_json::Value;
 
 #[derive(Deserialize, Clone)]
 pub struct TodoistConfig {
@@ -26,17 +27,11 @@ pub struct TodoistConfig {
 pub struct TodoistEvent {
     user_id: String,
     version: String,
-    initiator: serde_json::Value,
+    initiator: Value,
     event_name: String,
-    event_data: TodoistEventData,
+    event_data: Value,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(untagged)]
-pub enum TodoistEventData {
-    SectionOrItem(SectionOrItemEvent),
-    Project(ProjectEvent),
-}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SectionOrItemEvent {
@@ -138,9 +133,9 @@ async fn extract_project_attributes(
     projects: Vec<TodoistProject>,
 ) -> ExtractedAttributes {
     // take extract inner value
-    let project: ProjectEvent = match event.event_data.clone() {
-        TodoistEventData::Project(data) => data,
-        _ => panic!("Invalid event data."),
+    let project: ProjectEvent = match serde_json::from_value(event.event_data.clone()) {
+        Ok(p) => p,
+        Err(e) => panic!("Failed to extract project event: {}", e),
     };
 
     let parent = match &projects
@@ -181,11 +176,10 @@ async fn extract_item_section_attributes(
     config: &TodoistConfig,
     projects: Vec<TodoistProject>,
 ) -> ExtractedAttributes {
-    let event_data: SectionOrItemEvent =
-        match event.event_data.clone() {
-            TodoistEventData::SectionOrItem(data) => data,
-            _ => panic!("Invalid event data."),
-        };
+    let event_data: SectionOrItemEvent = match serde_json::from_value(event.event_data.clone()) {
+        Ok(e) => e,
+        Err(e) => panic!("Failed to extract section or item event: {}", e),
+    };
 
     let cur_project = match event_data.clone().project_id {
         None => None,
