@@ -148,22 +148,22 @@ async fn extract_project_attributes(
         .find(|p| Some(p.id.clone()) == project.v2_parent_id)
     {
         None => None,
-        Some(project) => Some(project.clone()),
+        Some(p) => Some(p.clone()),
     };
 
     let parent_name = match &parent {
         None => "".to_string(),
-        Some(project) => project.name.clone(),
+        Some(p) => p.name.clone(),
     };
 
     let parent_parent_name = match &parent {
         None => "".to_string(),
-        Some(project) => match &projects
+        Some(p) => match &projects
             .iter()
-            .find(|p| Some(p.id.clone()) == project.parent_id)
+            .find(|p_2| Some(p_2.id.clone()) == p.parent_id)
         {
             None => "".to_string(),
-            Some(project) => project.name.clone(),
+            Some(p) => p.name.clone(),
         },
     };
 
@@ -207,8 +207,8 @@ async fn extract_item_section_attributes(
 
     let parent = match &cur_project {
         None => None,
-        Some(cur_project) => match &projects.iter().find(|project| {
-            Some(project.id.clone()) == cur_project.parent_id
+        Some(project) => match &projects.iter().find(|p| {
+            Some(p.id.clone()) == project.parent_id
         }) {
             None => None,
             Some(project) => Some(project.clone()),
@@ -221,8 +221,8 @@ async fn extract_item_section_attributes(
 
     let parent_parent_name = match &parent {
         None => "".to_string(),
-        Some(project) => match &projects.iter().find(|project| {
-            Some(project.id.clone()) == project.parent_id
+        Some(project) => match &projects.iter().find(|p| {
+            Some(p.id.clone()) == project.parent_id
         }) {
             None => "".to_string(),
             Some(project) => project.name.clone(),
