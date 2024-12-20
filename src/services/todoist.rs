@@ -22,7 +22,7 @@ pub struct TodoistConfig {
     pub topic: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TodoistEvent {
     user_id: String,
     version: String,
@@ -31,25 +31,49 @@ pub struct TodoistEvent {
     event_data: TodoistEventData,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct TodoistEventData {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum TodoistEventData {
+    SectionOrItem(SectionOrItemEvent),
+    Project(ProjectEvent),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SectionOrItemEvent {
     id: String,
     parent_id: Option<String>,
     project_id: Option<String>,
     section_id: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ProjectEvent {
+    id: String,
+    name: String,
+    parent_id: Option<String>,
+    v2_id: String,
+    v2_parent_id: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TodoistProject {
     id: String,
     name: String,
     parent_id: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TodoistSection {
     id: String,
     name: String,
+}
+
+pub struct ExtractedAttributes {
+    pub id: String,
+    pub project_name: String,
+    pub parent_name: String,
+    pub parent_parent_name: String,
+    pub section_name: String,
 }
 
 pub async fn webhook(
@@ -64,14 +88,106 @@ pub async fn webhook(
     // For simplicity, TodoistEvent only contains only some data
     //  payload is used for the complete publishing.
     let event: TodoistEvent = serde_json::from_slice(&body).unwrap();
+    let event_name = event.event_name.clone();
     let payload: serde_json::Value =
         serde_json::from_slice(&body).unwrap();
-
     let projects = get_projects(&config).await.unwrap();
 
     debug!("event: {:?}", event);
 
-    let cur_project = match event.event_data.project_id {
+    let attr = if event.event_name.starts_with("project:") {
+        extract_project_attributes(&event, projects).await
+    } else {
+        extract_item_section_attributes(&event, &config, projects)
+            .await
+    };
+
+    log::info!(
+        "message published: event_name={}, project_name={}, parent_name={}, parent_parent_name={}, section_name={}",
+        &event_name,
+        &attr.project_name,
+        &attr.parent_name,
+        &attr.parent_parent_name,
+        &attr.section_name
+    );
+
+    topic
+        .clone()
+        .publish_message(EncodedMessage::new(
+            &payload.clone(),
+            Some(HashMap::from([
+                ("event_name".to_string(), event_name.clone()),
+                ("project_name".to_string(), attr.project_name),
+                ("parent_name".to_string(), attr.parent_name),
+                (
+                    "parent_parent_name".to_string(),
+                    attr.parent_parent_name,
+                ),
+                ("section_name".to_string(), attr.section_name),
+            ])),
+            Some(attr.id),
+        ))
+        .await
+        .unwrap();
+
+    HttpResponse::Ok()
+}
+
+async fn extract_project_attributes(
+    event: &TodoistEvent,
+    projects: Vec<TodoistProject>,
+) -> ExtractedAttributes {
+    // take extract inner value
+    let project: ProjectEvent = match event.event_data.clone() {
+        TodoistEventData::Project(data) => data,
+        _ => panic!("Invalid event data."),
+    };
+
+    let parent = match &projects
+        .iter()
+        .find(|p| Some(p.id.clone()) == project.v2_parent_id)
+    {
+        None => None,
+        Some(project) => Some(project.clone()),
+    };
+
+    let parent_name = match &parent {
+        None => "".to_string(),
+        Some(project) => project.name.clone(),
+    };
+
+    let parent_parent_name = match &parent {
+        None => "".to_string(),
+        Some(project) => match &projects
+            .iter()
+            .find(|p| Some(p.id.clone()) == project.parent_id)
+        {
+            None => "".to_string(),
+            Some(project) => project.name.clone(),
+        },
+    };
+
+    ExtractedAttributes {
+        id: project.id.clone(),
+        project_name: project.name.clone(),
+        parent_name,
+        parent_parent_name,
+        section_name: "".to_string(),
+    }
+}
+
+async fn extract_item_section_attributes(
+    event: &TodoistEvent,
+    config: &TodoistConfig,
+    projects: Vec<TodoistProject>,
+) -> ExtractedAttributes {
+    let event_data: SectionOrItemEvent =
+        match event.event_data.clone() {
+            TodoistEventData::SectionOrItem(data) => data,
+            _ => panic!("Invalid event data."),
+        };
+
+    let cur_project = match event_data.clone().project_id {
         None => None,
         Some(project_id) => match &projects
             .iter()
@@ -84,12 +200,12 @@ pub async fn webhook(
 
     debug!("project: {:?}", cur_project);
 
-    let cur_project_name = match &cur_project {
+    let project_name = match &cur_project {
         None => "".to_string(),
         Some(project) => project.name.clone(),
     };
 
-    let cur_parent = match &cur_project {
+    let parent = match &cur_project {
         None => None,
         Some(cur_project) => match &projects.iter().find(|project| {
             Some(project.id.clone()) == cur_project.parent_id
@@ -98,28 +214,28 @@ pub async fn webhook(
             Some(project) => Some(project.clone()),
         },
     };
-    let cur_parent_name = match &cur_parent {
+    let parent_name = match &parent {
         None => "".to_string(),
-        Some(project) => project.name.clone()
+        Some(project) => project.name.clone(),
     };
 
-    let cur_parent_parent_name = match &cur_parent {
+    let parent_parent_name = match &parent {
         None => "".to_string(),
-        Some(cur_project) => match &projects.iter().find(|project| {
-            Some(project.id.clone()) == cur_project.parent_id
+        Some(project) => match &projects.iter().find(|project| {
+            Some(project.id.clone()) == project.parent_id
         }) {
             None => "".to_string(),
             Some(project) => project.name.clone(),
         },
     };
 
-    let cur_section_name = if event.event_name.starts_with("section:") {
-        match get_section(event.event_data.id.clone(), &config).await {
+    let section_name = if event.event_name.starts_with("section:") {
+        match get_section(event_data.id.clone(), &config).await {
             Ok(section) => section.name.clone(),
             _ => "".to_string(),
         }
     } else {
-         match &event.event_data.section_id {
+        match &event_data.section_id {
             None => "".to_string(),
             Some(section_id) => {
                 match get_section(section_id.clone(), &config).await {
@@ -130,32 +246,13 @@ pub async fn webhook(
         }
     };
 
-    log::info!(
-        "message published: event_name={}, project_name={}, parent_name={}, parent_parent_name={}, section_name={}",
-        &event.event_name,
-        &cur_project_name,
-        &cur_parent_name,
-        &cur_parent_parent_name,
-        &cur_section_name
-    );
-
-    topic
-        .clone()
-        .publish_message(EncodedMessage::new(
-            &payload.clone(),
-            Some(HashMap::from([
-                ("event_name".to_string(), event.event_name.clone()),
-                ("project_name".to_string(), cur_project_name),
-                ("parent_name".to_string(), cur_parent_name),
-                ("parent_parent_name".to_string(), cur_parent_parent_name),
-                ("section_name".to_string(), cur_section_name),
-            ])),
-            Some(event.event_data.id.clone())
-        ))
-        .await
-        .unwrap();
-
-    HttpResponse::Ok()
+    ExtractedAttributes {
+        id: event_data.id.clone(),
+        project_name,
+        parent_name,
+        parent_parent_name,
+        section_name,
+    }
 }
 
 async fn get_projects(
